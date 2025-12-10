@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Inbox</h2>
+
+    <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="received-tab" data-bs-toggle="tab" data-bs-target="#received"
+                type="button">Received</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent"
+                type="button">Sent</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="received" role="tabpanel">
+            <div class="list-group">
+                {% for message in received_messages %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">From: {{ message.sender.username }}</h5>
+                        <small>{{ message.timestamp|timesince }} ago</small>
+                    </div>
+                    <p class="mb-1">{{ message.body }}</p>
+                    <a href="{% url 'send_message' message.sender.username %}"
+                        class="btn btn-sm btn-outline-primary mt-2">Reply</a>
+                </div>
+                {% empty %}
+                <p>No received messages.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="tab-pane fade" id="sent" role="tabpanel">
+            <div class="list-group">
+                {% for message in sent_messages %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">To: {{ message.recipient.username }}</h5>
+                        <small>{{ message.timestamp|timesince }} ago</small>
+                    </div>
+                    <p class="mb-1">{{ message.body }}</p>
+                </div>
+                {% empty %}
+                <p>No sent messages.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

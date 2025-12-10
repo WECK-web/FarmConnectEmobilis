@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Checkout</h2>
+    <div class="row">
+        <div class="col-md-8">
+            <h4>Order Summary</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart %}
+                    <tr>
+                        <td>{{ item.listing.title }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <h4 class="text-end">Total: ${{ cart.get_total_price }}</h4>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Confirm Order
+                </div>
+                <div class="card-body">
+                    <p>Please review your order before confirming.</p>
+                    <form action="{% url 'checkout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100">Confirm Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

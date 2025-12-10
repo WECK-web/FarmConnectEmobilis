@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4 text-center">
+        {% if farmer.profile.avatar %}
+        <img src="{{ farmer.profile.avatar.url }}" alt="{{ farmer.username }}" class="rounded-circle mb-3"
+            style="width: 150px; height: 150px; object-fit: cover;">
+        {% else %}
+        <img src="https://via.placeholder.com/150" alt="{{ farmer.username }}" class="rounded-circle mb-3">
+        {% endif %}
+        <h3>{{ farmer.username }}</h3>
+        <p class="text-muted">{{ farmer.profile.location }}</p>
+        <p><strong>Phone:</strong> {{ farmer.profile.phone }}</p>
+        <a href="{% url 'send_message' farmer.username %}" class="btn btn-outline-primary btn-sm">Send Message</a>
+    </div>
+    <div class="col-md-8">
+        <h4>About</h4>
+        <p>Verified Farmer on Farm Connect.</p>
+    </div>
+</div>
+
+<hr>
+
+<h3 class="mb-4">Produce from {{ farmer.username }}</h3>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for listing in listings %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            {% if listing.image %}
+            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}"
+                style="height: 200px; object-fit: cover;">
+            {% else %}
+            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center"
+                style="height: 200px;">
+                <span>No Image</span>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ listing.title }}</h5>
+                <p class="card-text text-muted">{{ listing.category.name }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary">{{ listing.quantity }} {{ listing.unit }}</span>
+                    <span class="fw-bold">${{ listing.price }}</span>
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="card-footer bg-white border-top-0">
+                <form action="{% url 'cart_add' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="card-footer bg-white border-top-0">
+                <a href="{% url 'login' %}" class="btn btn-outline-success w-100">Login to Purchase</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">
+        <p>No active listings.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
