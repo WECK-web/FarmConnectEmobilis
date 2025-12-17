@@ -1,0 +1,123 @@
+
+import os
+
+content = """{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3">Fresh Farm Produce</h1>
+        <p class="lead mb-4 fs-4">Direct from local farmers to your table. Sustainable, fresh, and fair.</p>
+        <a href="#listings" class="btn btn-light btn-lg btn-custom text-success fw-bold">Shop Fresh</a>
+    </div>
+</div>
+
+<div class="container" id="listings">
+    <!-- Search and Filter Section -->
+    <div class="row mb-5">
+        <div class="col-md-8 mx-auto">
+            <form action="{% url 'home' %}" method="get" class="d-flex gap-2 shadow-sm p-2 bg-white rounded-pill">
+                <input type="text" name="q" class="form-control border-0 rounded-pill ps-4"
+                    placeholder="Search for produce..." value="{{ request.GET.q|default:'' }}">
+                <select name="category" class="form-select border-0" style="width: auto;">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if cat.id == selected_category %}selected{% endif %}>{{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-success rounded-pill px-4">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Farmers Map -->
+    <div class="card border-0 shadow-sm mb-5 overflow-hidden">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Find Farmers Near You</h5>
+        </div>
+        <div id="farmersMap" style="height: 400px; width: 100%;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var map = L.map('farmersMap').setView([-1.2921, 36.8219], 7); // Default to Nairobi
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            {% for farmer in farmers_locations %}
+            L.marker([{{ farmer.profile.latitude }}, {{ farmer.profile.longitude }}])
+            .addTo(map)
+            .bindPopup('<strong><a href="{% url "user_profile_public" farmer.username %}">{{ farmer.username }}</a></strong><br>{{ farmer.profile.location }}');
+        {% endfor %}
+        });
+    </script>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        {% for listing in listings %}
+        <div class="col">
+            <div class="card h-100 card-modern">
+                {% if listing.image %}
+                <div class="card-img-wrapper">
+                    <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                </div>
+                {% else %}
+                <div class="card-img-top bg-light text-muted d-flex align-items-center justify-content-center"
+                    style="height: 220px;">
+                    <i class="bi bi-image fs-1 opacity-25"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ listing.title }}</h5>
+                    <p class="card-text text-muted">
+                        {{ listing.category.name }} |
+                        <a href="{% url 'user_profile_public' listing.seller.username %}" class="text-decoration-none">
+                            {{ listing.seller.username }}
+                        </a>
+                    </p>
+                    <p class="card-text">{{ listing.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-primary">{{ listing.quantity }} {{ listing.unit }}</span>
+                        <div>
+                            <a href="{% url 'send_message' listing.seller.username %}"
+                                class="btn btn-sm btn-outline-info me-1">Message</a>
+                            <span class="fw-bold">
+                                {% if listing.price == 0 %}
+                                Free
+                                {% else %}
+                                ${{ listing.price }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% if user.is_authenticated %}
+                <div class="card-footer bg-white border-top-0">
+                    <form action="{% url 'cart_add' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{% url 'login' %}" class="btn btn-outline-success w-100">Login to Purchase</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p>No listings found matching your criteria.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+"""
+
+with open('templates/home_v2.html', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("File written successfully")

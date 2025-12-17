@@ -6,14 +6,35 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle mb-3" width="150" height="150">
+                    <div class="mb-3">
+                        {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" class="rounded-circle img-thumbnail"
+                            alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto"
+                            style="width: 150px; height: 150px; font-size: 3rem;">
+                            {{ user.username|make_list|first|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h3 class="card-title fw-bold">{{ user.username }}</h3>
+                    <p class="text-muted mb-1">{{ user.email }}</p>
+                    {% if user.is_superuser %}
+                    <p class="badge bg-danger mb-3">Administrator</p>
                     {% else %}
-                    <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" width="150" height="150">
+                    <p
+                        class="badge {% if user.profile.user_type == 'FARMER' %}bg-success{% else %}bg-info{% endif %} mb-3">
+                        {{ user.profile.get_user_type_display }}
+                    </p>
                     {% endif %}
-                    <h4>{{ user.username }}</h4>
-                    <p class="text-muted">{{ user.email }}</p>
-                    <span class="badge bg-primary">{{ user.profile.user_type }}</span>
+
+                    {% if user.is_superuser %}
+                    <div class="mt-3">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-warning w-100 fw-bold">
+                            <i class="bi bi-speedometer2"></i> Go to Admin Dashboard
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -32,27 +53,129 @@
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                                 {{ field }}
                                 {% if field.errors %}
-                                <div class="text-danger">
-                                    {{ field.errors }}
-                                </div>
+                                <div class="text-danger">{{ field.errors }}</div>
                                 {% endif %}
                             </div>
                             {% endfor %}
                         </fieldset>
                         <fieldset>
-                            <legend class="border-bottom mb-4">Profile Details</legend>
-                            {% for field in p_form %}
+                            <legend class="border-bottom mb-4">Location Settings</legend>
                             <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.errors %}
-                                <div class="text-danger">
-                                    {{ field.errors }}
+                                <label class="form-label">Set Your Location</label>
+                                <div class="d-grid gap-2 mb-2">
+                                    <button type="button" class="btn btn-outline-primary" onclick="detectLocation()">
+                                        <i class="bi bi-geo-alt-fill"></i> Use My Current Device Location
+                                    </button>
                                 </div>
-                                {% endif %}
+                                <div id="location-map" style="height: 300px; border-radius: 8px;" class="mb-2 border">
+                                </div>
+                                <small class="text-muted d-block mb-3">Drag the marker to pinpoint your exact
+                                    location.</small>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="{{ p_form.latitude.id_for_label }}"
+                                            class="form-label">Latitude</label>
+                                        {{ p_form.latitude }}
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="{{ p_form.longitude.id_for_label }}"
+                                            class="form-label">Longitude</label>
+                                        {{ p_form.longitude }}
+                                    </div>
+                                </div>
                             </div>
-                            {% endfor %}
+
+                            <legend class="border-bottom mb-4 mt-4">Other Details</legend>
+                            <div class="mb-3">
+                                <label for="{{ p_form.avatar.id_for_label }}" class="form-label">Profile Picture</label>
+                                {{ p_form.avatar }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ p_form.phone.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ p_form.phone }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ p_form.location.id_for_label }}" class="form-label">Address</label>
+                                {{ p_form.location }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ p_form.bio.id_for_label }}" class="form-label">Bio (Tell us about
+                                    yourself)</label>
+                                {{ p_form.bio }}
+                            </div>
                         </fieldset>
+
+                        <!-- Leaflet CSS & JS -->
+                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+                        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                try {
+                                    // Default to Nairobi
+                                    var latInput = document.getElementById('{{ p_form.latitude.id_for_label }}');
+                                    var lonInput = document.getElementById('{{ p_form.longitude.id_for_label }}');
+
+                                    if (!latInput || !lonInput) {
+                                        console.warn("Location inputs not found, map disabled.");
+                                        return;
+                                    }
+
+                                    var initialLat = parseFloat(latInput.value);
+                                    var initialLon = parseFloat(lonInput.value);
+
+                                    // Check for NaN and set defaults if needed
+                                    if (isNaN(initialLat)) initialLat = -1.2921;
+                                    if (isNaN(initialLon)) initialLon = 36.8219;
+
+                                    var zoomLevel = (initialLat === -1.2921) ? 12 : 15;
+
+                                    var map = L.map('location-map').setView([initialLat, initialLon], zoomLevel);
+
+                                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        maxZoom: 19,
+                                        attribution: '© OpenStreetMap'
+                                    }).addTo(map);
+
+                                    // Draggable Marker
+                                    var marker = L.marker([initialLat, initialLon], { draggable: true }).addTo(map);
+
+                                    marker.on('dragend', function (event) {
+                                        var pos = marker.getLatLng();
+                                        latInput.value = pos.lat.toFixed(6);
+                                        lonInput.value = pos.lng.toFixed(6);
+                                    });
+
+                                    map.on('click', function (e) {
+                                        marker.setLatLng(e.latlng);
+                                        latInput.value = e.latlng.lat.toFixed(6);
+                                        lonInput.value = e.latlng.lng.toFixed(6);
+                                    });
+
+                                    window.detectLocation = function () {
+                                        if (navigator.geolocation) {
+                                            navigator.geolocation.getCurrentPosition(function (pos) {
+                                                var lat = pos.coords.latitude;
+                                                var lng = pos.coords.longitude;
+                                                map.setView([lat, lng], 16);
+                                                marker.setLatLng([lat, lng]);
+                                                latInput.value = lat.toFixed(6);
+                                                lonInput.value = lng.toFixed(6);
+                                            }, function (err) {
+                                                console.error(err);
+                                                alert("Unable to retrieve location. Please check browser permissions.");
+                                            });
+                                        } else {
+                                            alert("Browser not supported.");
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Map initialization failed:", e);
+                                    document.getElementById('location-map').innerHTML = "<div class='p-3 text-center text-danger'>Map failed to load. You can still enter coordinates manually.</div>";
+                                }
+                            });
+                        </script>
                         <button type="submit" class="btn btn-success">Update Profile</button>
                     </form>
                 </div>

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="div-center">
+    <div class="content">
+        <div class="text-center">
+            <h1 class="display-4 text-warning mb-3"><i class="bi bi-phone-vibrate"></i> Check Your Phone</h1>
+            <p class="lead">We have sent an M-Pesa payment request to <strong>{{ phone_number }}</strong>.</p>
+            <p>Please enter your M-Pesa PIN to complete the payment of <strong>KES {{ amount }}</strong>.</p>
+
+            <hr>
+
+            <div class="alert alert-info">
+                <strong>Note:</strong> Since this is a test environment, the payment confirmation might not update here
+                automatically.
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'consumer_orders' %}" class="btn btn-outline-primary me-2">I have Paid</a>
+                <a href="{% url 'home' %}" class="btn btn-success">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

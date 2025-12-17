@@ -13,6 +13,12 @@ def test_all():
     client = Client()
     results = []
     
+    # Pre-cleanup
+    try:
+        User.objects.filter(username__startswith='test').delete()
+        Category.objects.filter(name='Test').delete()
+    except: pass
+    
     # Test 1: Home Page
     try:
         resp = client.get('/')
@@ -70,8 +76,12 @@ def test_all():
         )
         resp = client.post(f'/cart/add/{listing.id}/')
         # Should redirect (not add to cart) because user is FARMER
-        cart_empty = len(client.session.get('cart', {})) == 0
-        results.append(("Farmer Cart Block", cart_empty, "Farmers cannot add to cart"))
+        cart = client.session.get('cart', {})
+        cart_empty = len(cart) == 0
+        msg = "Farmers cannot add to cart"
+        if not cart_empty:
+             msg += f" [CART CONTENT: {cart}]"
+        results.append(("Farmer Cart Block", cart_empty, msg))
     except Exception as e:
         results.append(("Farmer Cart Block", False, str(e)))
     
@@ -101,7 +111,7 @@ def test_all():
     # Print Results
     print("\n--- TEST RESULTS ---")
     for name, passed, msg in results:
-        status = "✓ PASS" if passed else "✗ FAIL"
+        status = "[PASS]" if passed else "[FAIL]"
         print(f"{status} | {name}: {msg}")
     
     # Cleanup

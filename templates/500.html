@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5 mb-5">
+    <div class="display-1 text-danger fw-bold">500</div>
+    <h2 class="mb-3">Server Error</h2>
+    <p class="lead mb-4">Something went wrong on our farm. Our technical team is harvesting the bugs.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-house-door me-2"></i>Go Home
+    </a>
+</div>
+{% endblock %}

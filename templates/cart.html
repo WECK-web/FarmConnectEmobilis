@@ -27,9 +27,20 @@
                     {% endif %}
                 </td>
                 <td>{{ listing.title }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>${{ item.price }}</td>
-                <td>${{ item.total_price }}</td>
+                <td>
+                    <form action="{% url 'cart_update' listing.id %}" method="post"
+                        class="d-flex align-items-center gap-2">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                            max="{{ listing.quantity }}" class="form-control form-control-sm" style="width: 80px;">
+                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Update quantity">
+                            <i class="bi bi-check"></i>
+                        </button>
+                    </form>
+                    <small class="text-muted d-block mt-1">Max: {{ listing.quantity }}</small>
+                </td>
+                <td>KSh {{ item.price }}</td>
+                <td>KSh {{ item.total_price }}</td>
                 <td>
                     <a href="{% url 'cart_remove' listing.id %}" class="btn btn-danger btn-sm">Remove</a>
                 </td>
@@ -43,7 +54,7 @@
         </tbody>
     </table>
     <div class="text-end">
-        <h4>Total: ${{ cart.get_total_price }}</h4>
+        <h4>Total: KSh {{ cart.get_total_price }}</h4>
         <a href="{% url 'home' %}" class="btn btn-secondary">Continue Shopping</a>
         <form action="{% url 'checkout' %}" method="post" class="d-inline">
             {% csrf_token %}

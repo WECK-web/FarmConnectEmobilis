@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">Manage Orders</h4>
+            <p class="text-muted mb-0">Track and manage your incoming orders.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'farmer_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-primary">
+                <i class="bi bi-printer"></i> Print List
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="custom-card p-4">
+            <!-- Status Filter -->
+            <div class="d-flex flex-wrap gap-2 mb-4 pb-4 border-bottom">
+                <a href="{% url 'farmer_orders' %}"
+                    class="btn btn-sm rounded-pill px-3 {% if not status_filter %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                    All Orders
+                </a>
+                <a href="?status=PENDING"
+                    class="btn btn-sm rounded-pill px-3 {% if status_filter == 'PENDING' %}btn-warning text-white{% else %}btn-outline-secondary{% endif %}">
+                    Pending
+                </a>
+                <a href="?status=CONFIRMED"
+                    class="btn btn-sm rounded-pill px-3 {% if status_filter == 'CONFIRMED' %}btn-info text-white{% else %}btn-outline-secondary{% endif %}">
+                    Confirmed
+                </a>
+                <a href="?status=SHIPPED"
+                    class="btn btn-sm rounded-pill px-3 {% if status_filter == 'SHIPPED' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Shipped
+                </a>
+                <a href="?status=DELIVERED"
+                    class="btn btn-sm rounded-pill px-3 {% if status_filter == 'DELIVERED' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                    Delivered
+                </a>
+            </div>
+
+            {% if orders %}
+            <div class="table-responsive">
+                <table class="table modern-table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Buyer Details</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <span class="fw-bold text-dark">#{{ order.id }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if order.listing.image %}
+                                    <img src="{{ order.listing.image.url }}" class="rounded-3"
+                                        style="width: 48px; height: 48px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-3 bg-light d-flex align-items-center justify-content-center text-muted"
+                                        style="width: 48px; height: 48px;">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0 fw-medium">{{ order.listing.title }}</h6>
+                                        <small class="text-muted">Qty: {{ order.quantity }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle bg-soft-primary text-primary"
+                                        style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ order.buyer.username|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ order.buyer.username }}</div>
+                                        <a href="{% url 'send_message' order.buyer.username %}"
+                                            class="text-decoration-none text-muted" style="font-size: 0.8rem;">
+                                            <i class="bi bi-chat-dots me-1"></i> Message
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-muted">
+                                {{ order.date_ordered|date:"M d, Y" }}
+                            </td>
+                            <td class="fw-bold text-dark">
+                                KSh {{ order.total_price }}
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if order.status == 'DELIVERED' %}bg-soft-green text-success
+                                    {% elif order.status == 'SHIPPED' %}bg-soft-blue text-primary
+                                    {% elif order.status == 'CONFIRMED' %}bg-soft-purple text-info
+                                    {% elif order.status == 'PENDING' %}bg-soft-orange text-warning
+                                    {% else %}bg-light text-muted{% endif %} px-3 py-2">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                        <li><a class="dropdown-item" href="{% url 'order_detail' order.id %}"><i
+                                                    class="bi bi-eye me-2"></i> View Details</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <h6 class="dropdown-header">Update Status</h6>
+                                        </li>
+
+                                        {% if order.status != 'PENDING' %}
+                                        <li>
+                                            <form action="{% url 'update_order_status' order.id %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="PENDING">
+                                                <button type="submit" class="dropdown-item text-warning"><i
+                                                        class="bi bi-clock me-2"></i> Mark Pending</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+
+                                        {% if order.status != 'CONFIRMED' %}
+                                        <li>
+                                            <form action="{% url 'update_order_status' order.id %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="CONFIRMED">
+                                                <button type="submit" class="dropdown-item text-info"><i
+                                                        class="bi bi-check-circle me-2"></i> Confirm Order</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+
+                                        {% if order.status != 'SHIPPED' %}
+                                        <li>
+                                            <form action="{% url 'update_order_status' order.id %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="SHIPPED">
+                                                <button type="submit" class="dropdown-item text-primary"><i
+                                                        class="bi bi-truck me-2"></i> Mark Shipped</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+
+                                        {% if order.status != 'DELIVERED' %}
+                                        <li>
+                                            <form action="{% url 'update_order_status' order.id %}" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="DELIVERED">
+                                                <button type="submit" class="dropdown-item text-success"><i
+                                                        class="bi bi-box-seam me-2"></i> Mark Delivered</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+                </div>
+                <h5 class="text-muted">No orders found</h5>
+                <p class="text-muted small">Try changing the status filter or check back later.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1 @@
+DEBUG: User=testfarmer2, Type=FARMER\nDEBUG: User=testfarmer2, Type=FARMER\nDEBUG: User=testfarmer2, Type=FARMER\n

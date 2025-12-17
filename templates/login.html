@@ -1,43 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">Login</h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h3>Welcome Back 👋</h3>
+            <p>Enter your credentials to access your account.</p>
+        </div>
 
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {% for error in form.non_field_errors %}
-                        {{ error }}
-                        {% endfor %}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    {% endif %}
+        <form method="post">
+            {% csrf_token %}
 
-                    {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% for error in field.errors %}
-                        <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </button>
-                </form>
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-3" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                {% for error in form.non_field_errors %}
+                {{ error }}
+                {% endfor %}
             </div>
-            <div class="card-footer text-center">
-                Don't have an account? <a href="{% url 'register' %}">Register here</a>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="mb-4">
+                <label for="{{ field.id_for_label }}" class="form-label-custom">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
             </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-auth">
+                Sign In
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                Don't have an account? <a href="{% url 'register' %}" class="fw-bold text-decoration-none"
+                    style="color: var(--primary-color);">Create Account</a>
+                <br>
+                <a href="{% url 'submit_appeal' %}" class="text-secondary small mt-2 d-inline-block">Account Suspended?
+                    Appeal Here</a>
+            </p>
         </div>
     </div>
 </div>
+
+<script>
+    // Add custom class to django form fields
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => input.classList.add('form-control-custom'));
+</script>
 {% endblock %}

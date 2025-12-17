@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Manage Users <i class="bi bi-people-fill text-primary"></i></h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to
+            Dashboard</a>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Username</th>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-secondary text-white small me-2"
+                                        style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        {{ user.username|make_list|first|upper }}
+                                    </div>
+                                    {{ user.username }}
+                                    {% if user.profile.is_verified %}<i class="bi bi-patch-check-fill text-primary ms-1"
+                                        title="Verified Farmer"></i>{% endif %}
+                                    {% if user.is_superuser %}<span class="badge bg-dark ms-2">Admin</span>{% endif %}
+                                </div>
+                            </td>
+                            <td>{{ user.email|default:"-" }}</td>
+                            <td>
+                                {% if user.profile.user_type == 'FARMER' %}
+                                <span class="badge bg-success">Farmer</span>
+                                {% elif user.profile.user_type == 'CONSUMER' %}
+                                <span class="badge bg-info text-dark">Consumer</span>
+                                {% else %}
+                                <span class="badge bg-secondary">System</span>
+                                {% endif %}
+                            </td>
+                            <td>{% if user.is_active %}<span class="badge bg-success"><i
+                                        class="bi bi-check-circle-fill"></i> Active</span>{% else %}<span
+                                    class="badge bg-danger">BANNED</span>{% endif %}</td>
+                            <td class="small text-muted">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-end pe-4">
+                                {% if not user.is_superuser %}
+                                <a href="{% url 'warn_user' user.id %}" class="btn btn-sm btn-outline-warning me-1"
+                                    title="Warn User"
+                                    onclick="return confirm('Send warning notification to this user?');">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </a>
+                                {% if user.profile.user_type == 'FARMER' %}
+                                <a href="{% url 'toggle_verification' user.id %}"
+                                    class="btn btn-sm {% if user.profile.is_verified %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
+                                    title="Toggle Verification">
+                                    <i
+                                        class="bi {% if user.profile.is_verified %}bi-x-circle{% else %}bi-check-circle{% endif %}"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.is_active %}
+                                <a href="{% url 'ban_user' user.id %}" class="btn btn-sm btn-outline-danger me-1"
+                                    title="Ban User" onclick="return confirm('Are you sure?');">
+                                    <i class="bi bi-slash-circle"></i>
+                                </a>
+                                {% else %}
+                                <a href="{% url 'unban_user' user.id %}" class="btn btn-sm btn-outline-success me-1"
+                                    title="Unban User">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'delete_user' user.id %}" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Are you sure you want to permanently delete this user? This cannot be undone.');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled>Protected</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

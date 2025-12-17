@@ -19,23 +19,45 @@
                     <tr>
                         <td>{{ item.listing.title }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>${{ item.total_price }}</td>
+                        <td>KSh {{ item.total_price }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <h4 class="text-end">Total: ${{ cart.get_total_price }}</h4>
+            <h4 class="text-end">Total: KSh {{ cart.get_total_price }}</h4>
         </div>
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header">
-                    Confirm Order
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-wallet2 me-2"></i>Pay with M-Pesa</h5>
                 </div>
                 <div class="card-body">
-                    <p>Please review your order before confirming.</p>
+                    <p class="text-muted mb-3">Enter your M-Pesa number to receive a payment prompt on your phone.</p>
                     <form action="{% url 'checkout' %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary w-100">Confirm Order</button>
+                        <div class="mb-3">
+                            <label class="form-label">M-Pesa Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.phone_number.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Location</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.location.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-phone me-2"></i>Pay KES {{ cart.get_total_price }}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

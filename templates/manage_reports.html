@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-flag-fill text-danger"></i> Manage Reports</h2>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Reporter</th>
+                        <th>Reported User</th>
+                        <th>Reason</th>
+                        <th>Details</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.created_at|date:"M d, Y" }}</td>
+                        <td>{{ report.reporter.username }}</td>
+                        <td>
+                            <span class="fw-bold">{{ report.reported_user.username }}</span>
+                            <span class="badge bg-secondary">{{ report.reported_user.profile.user_type|title }}</span>
+                        </td>
+                        <td><span class="badge bg-danger">{{ report.get_reason_display }}</span></td>
+                        <td>{{ report.details|truncatechars:50 }}</td>
+                        <td>
+                            <a href="{% url 'resolve_report' report.id %}" class="btn btn-sm btn-success text-white">
+                                <i class="bi bi-check-lg"></i> Resolve
+                            </a>
+                            <a href="{% url 'ban_user' report.reported_user.id %}" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure you want to BAN this user?');">
+                                <i class="bi bi-slash-circle-fill"></i> Ban
+                            </a>
+                            <a href="{% url 'warn_user' report.reported_user.id %}"
+                                class="btn btn-sm btn-warning text-dark"
+                                onclick="return confirm('Send official warning?');">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Warn
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="bi bi-shield-check fs-2 d-block mb-2"></i>
+                            No pending reports. Great job!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

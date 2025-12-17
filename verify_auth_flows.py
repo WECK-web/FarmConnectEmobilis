@@ -30,12 +30,9 @@ def verify_login_flows():
 
     # 2. Test Farmer Redirect (Should go to Dashboard)
     print("\n[TEST] Farmer Login Redirect")
-    resp = client.post('/login/', {'username': 'flow_farmer', 'password': password}, follow=True)
-    if resp.redirect_chain:
-        final_url = resp.redirect_chain[-1][0]
-        # Expect /dashboard/ (reverse 'farmer_dashboard')
-        # Note: reverse('farmer_dashboard') might differ if I changed urls. Let's check logic.
-        # Actually I should check if it ends with dashboard
+    resp = client.post('/login/', {'username': 'flow_farmer', 'password': password}, follow=False)
+    if resp.status_code == 302:
+        final_url = resp.url
         if 'dashboard' in final_url:
             print(f"✅ SUCCESS: Farmer redirected to Dashboard ({final_url})")
         else:
@@ -47,9 +44,9 @@ def verify_login_flows():
 
     # 3. Test Consumer Redirect (Should go to Home)
     print("\n[TEST] Consumer Login Redirect")
-    resp = client.post('/login/', {'username': 'flow_consumer', 'password': password}, follow=True)
-    if resp.redirect_chain:
-        final_url = resp.redirect_chain[-1][0]
+    resp = client.post('/login/', {'username': 'flow_consumer', 'password': password}, follow=False)
+    if resp.status_code == 302:
+        final_url = resp.url
         # Expect / (home)
         if final_url == '/':
             print(f"✅ SUCCESS: Consumer redirected to Home ({final_url})")

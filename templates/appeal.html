@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="bi bi-shield-lock-fill"></i> Appeal Account Suspension</h4>
+            </div>
+            <div class="card-body">
+                <p>If you believe your account was suspended in error, please submit an appeal below.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Appeal</label>
+                        {{ form.reason }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark">Submit Appeal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

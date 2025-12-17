@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Manage Listings <i class="bi bi-shop text-success"></i></h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to
+            Dashboard</a>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Product</th>
+                            <th>Seller</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Created</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for listing in listings %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ listing.title }}</td>
+                            <td>{{ listing.seller.get_full_name|default:listing.seller.username }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ listing.category.name }}</span></td>
+                            <td class="fw-bold">${{ listing.price }} / {{ listing.unit }}</td>
+                            <td>
+                                {% if listing.quantity > 0 %}
+                                <span class="badge bg-success">{{ listing.quantity }}</span>
+                                {% else %}
+                                <span class="badge bg-danger">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ listing.created_at|date:"M d, Y" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'delete_listing' listing.id %}" class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this listing?');">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">No listings found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

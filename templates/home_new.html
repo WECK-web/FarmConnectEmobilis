@@ -29,6 +29,30 @@
         </div>
     </div>
 
+    <!-- Farmers Map -->
+    <div class="card border-0 shadow-sm mb-5 overflow-hidden">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Find Farmers Near You</h5>
+        </div>
+        <div id="farmersMap" style="height: 400px; width: 100%;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var map = L.map('farmersMap').setView([-1.2921, 36.8219], 7); // Default to Nairobi
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            {% for farmer in farmers_locations %}
+            L.marker([{{ farmer.profile.latitude }}, {{ farmer.profile.longitude }}])
+            .addTo(map)
+            .bindPopup('<strong><a href="{% url "user_profile_public" farmer.username %}">{{ farmer.username }}</a></strong><br>{{ farmer.profile.location }}');
+        {% endfor %}
+        });
+    </script>
+
     <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
         {% for listing in listings %}
         <div class="col">
@@ -47,7 +71,7 @@
                     <h5 class="card-title">{{ listing.title }}</h5>
                     <p class="card-text text-muted">
                         {{ listing.category.name }} |
-                        <a href="{% url 'farmer_profile' listing.seller.username %}" class="text-decoration-none">
+                        <a href="{% url 'user_profile_public' listing.seller.username %}" class="text-decoration-none">
                             {{ listing.seller.username }}
                         </a>
                     </p>

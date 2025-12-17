@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Order #{{ order.id }}</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Product:</strong> {{ order.listing.title }}</p>
+                    <p><strong>Quantity:</strong> {{ order.quantity}} {{ order.listing.unit }}</p>
+                    <p><strong>Price:</strong> KSh {{ order.listing.price }}</p>
+                    <p><strong>Farmer:</strong> <a
+                            href="{% url 'user_profile_public' order.listing.seller.username %}">{{
+                            order.listing.seller.get_full_name|default:order.listing.seller.username }}</a></p>
+                    <p><strong>Order Date:</strong> {{order.date_ordered|date:"M d, Y H:i" }}</p>
+                    {% if order.estimated_delivery %}
+                    <p><strong>Estimated Delivery:</strong> {{ order.estimated_delivery|date:"M d, Y" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Status Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Order Status Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for history in status_history %}
+                        <div class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ history.get_status_display|default:history.status }}</strong>
+                                <small class="text-muted">{{ history.timestamp|date:"M d, Y H:i" }}</small>
+                            </div>
+                            {% if history.notes %}
+                            <p class="mb-0 mt-2"><small>{{ history.notes }}</small></p>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <p>No status history available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Current Status</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3><span class="badge 
+                        {% if order.status == 'DELIVERED' %}bg-success
+                        {% elif order.status == 'SHIPPED' %}bg-primary
+                        {% elif order.status == 'CONFIRMED' %}bg-info
+                        {% elif order.status == 'PENDING' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                            {{ order.get_status_display }}
+                        </span></h3>
+
+                    {% if order.tracking_notes %}
+                    <div class="alert alert-info mt-3">
+                        <strong>Notes:</strong><br>
+                        {{ order.tracking_notes }}
+                    </div>
+                    {% endif %}
+
+                    {% if is_farmer %}
+                    <a href="{% url 'update_order_status' order.id %}" class="btn btn-primary mt-3 w-100">Update
+                        Status</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

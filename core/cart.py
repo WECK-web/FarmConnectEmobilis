@@ -17,16 +17,28 @@ class Cart:
     def add(self, listing, quantity=1, update_quantity=False):
         """
         Add a product to the cart or update its quantity.
+        Returns True if successful, False if quantity exceeds stock.
         """
         listing_id = str(listing.id)
         if listing_id not in self.cart:
             self.cart[listing_id] = {'quantity': 0, 'price': str(listing.price)}
         
+        # Calculate new quantity
         if update_quantity:
-            self.cart[listing_id]['quantity'] = quantity
+            new_quantity = quantity
         else:
-            self.cart[listing_id]['quantity'] += quantity
+            new_quantity = self.cart[listing_id]['quantity'] + quantity
+        
+        # Validate against available stock
+        if new_quantity > listing.quantity:
+            return False  # Exceeds available stock
+        
+        if new_quantity <= 0:
+            return False  # Invalid quantity
+        
+        self.cart[listing_id]['quantity'] = new_quantity
         self.save()
+        return True
 
     def remove(self, listing):
         """

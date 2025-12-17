@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 fw-bold">My Wishlist <i class="bi bi-heart-fill text-danger"></i></h2>
+
+    {% if wishlist %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for item in wishlist %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 listing-card">
+                {% if item.listing.image %}
+                <img src="{{ item.listing.image.url }}" class="card-img-top" alt="{{ item.listing.title }}"
+                    style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="{% static 'img/placeholder.jpg' %}" class="card-img-top" alt="{{ item.listing.title }}"
+                    style="height: 200px; object-fit: cover;">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ item.listing.title }}</h5>
+                    <p class="card-text text-muted small">{{ item.listing.description|truncatechars:80 }}</p>
+                    <h6 class="mb-0 fw-bold">KSh {{ item.listing.price }}</h6>
+                </div>
+                <div class="card-footer bg-white border-0 py-3">
+                    <div class="d-grid gap-2">
+                        <form action="{% url 'cart_add' item.listing.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-success w-100">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                        </form>
+                        <button onclick="toggleWishlist({{ item.listing.id }}, this)" class="btn btn-danger w-100">
+                            <i class="bi bi-heart-fill"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Your wishlist is empty.</p>
+    {% endif %}
+</div>
+
+<script>
+    function toggleWishlist(listingId, btn) {
+        fetch(`/wishlist/toggle/${listingId}/`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.added) {
+                    btn.closest('.col').remove();
+                }
+            });
+    }
+</script>
+{% endblock %}

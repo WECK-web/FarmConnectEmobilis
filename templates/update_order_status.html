@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Update Order #{{ order.id }}</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tracking Notes</label>
+                            {{ form.tracking_notes }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Delivery Date</label>
+                            {{ form.estimated_delivery }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Order</button>
+                        <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Order Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Product:</strong> {{ order.listing.title }}</p>
+                    <p><strong>Buyer:</strong> {{ order.buyer.username }}</p>
+                    <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                    <p><strong>Current Status:</strong> <span class="badge bg-info">{{ order.get_status_display
+                            }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

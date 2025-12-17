@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    {% if target_user.profile.avatar %}
+                    <img src="{{ target_user.profile.avatar.url }}" alt="{{ target_user.username }}"
+                        class="rounded-circle mb-3 border object-fit-cover" width="150" height="150">
+                    {% else %}
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                        style="width: 150px; height: 150px; font-size: 4rem;">
+                        {{ target_user.username|first|upper }}
+                    </div>
+                    {% endif %}
+
+                    <h2 class="fw-bold mb-1">{{ target_user.first_name }} {{ target_user.last_name }}</h2>
+                    <p class="text-muted mb-2">@{{ target_user.username }}</p>
+
+                    <div class="mb-3">
+                        <span class="text-warning fw-bold fs-5">
+                            {% if avg_rating > 0 %}
+                            <i class="bi bi-star-fill"></i> {{ avg_rating }}
+                            {% else %}
+                            <i class="bi bi-star"></i> No ratings yet
+                            {% endif %}
+                        </span>
+                        <span class="text-muted small">({{ review_count }} reviews)</span>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-person-badge me-1"></i> {{ target_user.profile.user_type|title }}
+                        </span>
+                        {% if target_user.profile.location %}
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-geo-alt-fill me-1"></i> {{ target_user.profile.location }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if request.user != target_user %}
+                    <a href="{% url 'send_message' target_user.username %}"
+                        class="btn btn-outline-primary px-4 rounded-pill">
+                        <i class="bi bi-chat-dots me-2"></i>Message
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            {% if request.user.is_authenticated and request.user != target_user %}
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Write a Review</h5>
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            {{ review_form.rating }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comment</label>
+                            {{ review_form.comment }}
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reviews List -->
+            {% if reviews %}
+            <div class="mt-5">
+                <h4 class="mb-4">Customer Reviews</h4>
+                <div class="d-flex flex-column gap-3">
+                    {% for review in reviews %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="fw-bold mb-1">{{ review.author.username }}</h6>
+                                <span class="text-muted small">{{ review.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %} <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                    <i class="bi bi-star"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                            </div>
+                            <p class="mb-0 text-muted">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if listings %}
+            <div class="mt-5">
+                <h4 class="mb-4">Listings by {{ target_user.username }}</h4>
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for listing in listings %}
+                    <div class="col">
+                        <div class="card h-100 card-modern">
+                            {% if listing.image %}
+                            <img src="{{ listing.image.url }}" class="card-img-top" alt="{{ listing.title }}"
+                                style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light text-center py-5">
+                                <i class="bi bi-image fs-1 text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ listing.title }}</h5>
+                                <p class="card-text text-muted small">{{ listing.category.name }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">KSh {{ listing.price }}</span>
+                                    {% if request.user.profile.user_type == 'CONSUMER' %}
+                                    <form action="{% url 'cart_add' listing.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-success">Add</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

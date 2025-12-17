@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.BanEnforcementMiddleware',
 ]
 
 ROOT_URLCONF = 'farm_connect.urls'
@@ -128,3 +129,11 @@ CART_SESSION_ID = 'cart'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# M-Pesa Configuration (Sandbox)
+MPESA_CONSUMER_KEY = 'w7G5hbAJpKTtJTSyk3MVMAS9ihWrOTB4gt75ISOt2uL4w2UD'
+MPESA_CONSUMER_SECRET = 'Ace3jsvZrSV0WD5Fnue9dMzvIVxreTKRQ07ZpuGWhGPKQ0UGMlCgqJlYc4Wq09Vz'
+MPESA_PASSKEY = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+MPESA_SHORTCODE = '174379'
+MPESA_BASE_URL = 'https://sandbox.safaricom.co.ke'
+MPESA_CALLBACK_URL = 'https://mydomain.com/payment/callback/' # Placeholder

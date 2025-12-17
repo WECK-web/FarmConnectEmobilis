@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2><i class="bi bi-geo-alt-fill text-success"></i> Farmers Near You</h2>
+    <p class="text-muted">Find local farmers offering fresh produce within {{ radius }} km.</p>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <button onclick="getLocation()" class="btn btn-lg btn-success">
+                <i class="bi bi-crosshair"></i> Use My Current Location
+            </button>
+            <span id="status" class="ms-3 text-muted"></span>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map" class="mb-5 shadow-sm"></div>
+
+    <!-- Results List -->
+    <h3 class="mb-3">Results ({{ farmers|length }})</h3>
+    <div class="row">
+        {% for item in farmers %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if item.profile.avatar %}
+                        <img src="{{ item.profile.avatar.url }}" class="rounded-circle me-3" width="50" height="50">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-3"
+                            style="width: 50px; height: 50px;">
+                            {{ item.profile.user.username|make_list|first|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="card-title mb-0">{{ item.profile.user.username }}
+                                {% if item.profile.is_verified %}<i class="bi bi-patch-check-fill text-primary"
+                                    title="Verified Farmer"></i>{% endif %}
+                            </h5>
+                            <small class="text-muted"><i class="bi bi-geo-alt"></i> {{ item.profile.location }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success mb-2">{{ item.distance }} km away</span>
+                    <p class="card-text">{{ item.profile.bio|truncatechars:100 }}</p>
+                    <a href="{% url 'user_profile_public' item.profile.user.username %}"
+                        class="btn btn-outline-primary btn-sm w-100">View Profile</a>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Add marker for this farmer (will be called after map init)
+            var farmerData = window.farmerData || [];
+            farmerData.push({
+                lat: {{ item.profile.latitude }},
+                lon: {{ item.profile.longitude }},
+                name: "{{ item.profile.user.username }}",
+                link: "{% url 'user_profile_public' item.profile.user.username %}"
+            });
+            window.farmerData = farmerData;
+        </script>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted">
+                <i class="bi bi-search display-1"></i>
+                <p class="mt-3">No farmers found within range. Try increasing the search radius or enabling location.
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    var map;
+    var userLat = {{ user_lat }};
+    var userLon = {{ user_lon }};
+
+    function initMap(lat, lon) {
+        if (map) map.remove();
+
+        map = L.map('map').setView([lat, lon], 12);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // User Marker
+        L.marker([lat, lon]).addTo(map)
+            .bindPopup("<b>You are here</b>").openPopup();
+
+        // Farmer Markers
+        var farmers = window.farmerData || [];
+        farmers.forEach(function (f) {
+            L.marker([f.lat, f.lon], { icon: greenIcon }).addTo(map)
+                .bindPopup("<b>" + f.name + "</b><br><a href='" + f.link + "'>View Profile</a>");
+        });
+    }
+
+    // Custom Green Icon for Farmers
+    var greenIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    function getLocation() {
+        var status = document.getElementById("status");
+        status.innerText = "Locating...";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success, error);
+        } else {
+            status.innerText = "Geolocation is not supported by your browser";
+        }
+    }
+
+    function success(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        // Redirect with params
+        window.location.href = `?lat=${latitude}&lon=${longitude}&radius={{ radius }}`;
+    }
+
+    function error() {
+        document.getElementById("status").innerText = "Unable to retrieve your location";
+    }
+
+    // Initialize if coords present
+    if (userLat && userLon) {
+        initMap(userLat, userLon);
+        document.getElementById("status").innerText = "";
+    } else {
+        // Default to Nairobi or prompts
+        initMap(-1.2921, 36.8219);
+        document.getElementById("status").innerText = "Default Location (Nairobi)";
+    }
+</script>
+{% endblock %}
